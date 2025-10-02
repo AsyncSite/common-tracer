@@ -1,0 +1,10 @@
+# Test configuration for common-tracer
+
+asyncsite:
+  tracing:
+    enabled: true
+    http-enabled: true
+    kafka-enabled: true
+    log-request-response: true
+    packages:
+      - com.asyncsite

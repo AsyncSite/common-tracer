@@ -1,0 +1,29 @@
+# AsyncSite Common Tracer - Default Configuration
+# These are the default values. Services can override in their own application.yml
+
+asyncsite:
+  tracing:
+    # Enable distributed tracing (set to false to disable completely)
+    enabled: true
+
+    # Enable HTTP header propagation (X-B3-TraceId, X-B3-SpanId)
+    http-enabled: true
+
+    # Enable Kafka message header propagation
+    kafka-enabled: true
+
+    # Enable detailed logging for RestController request/response bodies
+    # (Set to false in production if sensitive data concerns)
+    log-request-response: true
+
+    # Target packages to trace
+    # Default: all com.asyncsite packages
+    packages:
+      - com.asyncsite
+
+# Micrometer Tracing Configuration (optional - uncomment to customize)
+# management:
+#   tracing:
+#     sampling:
+#       probability: 1.0  # Sample 100% of requests (reduce in production)
+#     enabled: true
