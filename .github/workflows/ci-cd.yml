@@ -48,19 +48,19 @@ jobs:
       run: |
         mkdir -p ~/.gradle
         echo "gpr.user=${{ github.actor }}" >> ~/.gradle/gradle.properties
-        echo "gpr.key=${{ secrets.PAT_TOKEN }}" >> ~/.gradle/gradle.properties
+        echo "gpr.key=${{ secrets.GITHUB_TOKEN }}" >> ~/.gradle/gradle.properties
 
     - name: Build with Gradle (skip tests)
       run: ./gradlew build -x test --no-daemon --stacktrace --info
       env:
         GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run tests
       run: ./gradlew test --no-daemon --stacktrace
       env:
         GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -131,7 +131,7 @@ jobs:
       run: |
         mkdir -p ~/.gradle
         echo "gpr.user=${{ github.actor }}" >> ~/.gradle/gradle.properties
-        echo "gpr.key=${{ secrets.PAT_TOKEN }}" >> ~/.gradle/gradle.properties
+        echo "gpr.key=${{ secrets.GITHUB_TOKEN }}" >> ~/.gradle/gradle.properties
 
     - name: Build library
       run: |
@@ -139,13 +139,13 @@ jobs:
         ./gradlew build -x test --no-daemon
       env:
         GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish to GitHub Packages
       run: ./gradlew publish --no-daemon --stacktrace
       env:
         GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Send Discord Notification
       if: always()
