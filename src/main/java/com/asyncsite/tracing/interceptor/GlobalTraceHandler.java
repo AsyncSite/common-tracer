@@ -8,13 +8,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 
 /**
  * GlobalTraceHandler - AOP aspect for automatic method tracing
@@ -22,7 +16,7 @@ import java.util.Arrays;
  * Responsibilities:
  * - Intercept all methods in configured packages
  * - Automatically log method entry/exit with LogTracer
- * - Special handling for @RestController (log request/response bodies)
+ * - Log parameters and return values in JSON format (DEBUG level)
  * - Exception propagation with trace context
  *
  * Configuration:
@@ -33,6 +27,7 @@ import java.util.Arrays;
  * - Zero-code tracing (just add dependency)
  * - Consistent logging format across services
  * - Visual call hierarchy in logs
+ * - Rich parameter/return value logging for debugging
  */
 @Slf4j
 @Aspect
@@ -57,13 +52,8 @@ public class GlobalTraceHandler {
             // Begin trace with method signature
             status = logTracer.begin(joinPoint.getSignature().toShortString());
 
-            // Special handling for REST controllers (log request/response)
-            if (isAnnotationPresent(joinPoint, RestController.class)) {
-                result = logWithParameters(joinPoint, status);
-            } else {
-                result = joinPoint.proceed();
-                logTracer.end(result, status);
-            }
+            // Log parameters and return values for all methods
+            result = logWithParameters(joinPoint, status);
 
             return result;
         } catch (Exception exception) {
@@ -76,45 +66,29 @@ public class GlobalTraceHandler {
     }
 
     /**
-     * Log incoming request and outgoing response for REST controllers
+     * Log method parameters and return value for all methods
      */
     private Object logWithParameters(ProceedingJoinPoint joinPoint, TraceStatus status) throws Throwable {
-        // Log incoming request parameters (안전하게)
-        String requestJson = com.asyncsite.tracing.logtrace.SafeJsonLogger.toJsonArray(joinPoint.getArgs());
-        log.info("Request: {}", requestJson);
+        // Log incoming parameters (안전하게)
+        Object[] args = joinPoint.getArgs();
+        if (args != null && args.length > 0) {
+            String paramsJson = com.asyncsite.tracing.logtrace.SafeJsonLogger.toJsonArray(args);
+            log.debug("Params: {}", paramsJson);
+        }
 
         // Execute method
         Object result = joinPoint.proceed();
 
-        // Log outgoing response (안전하게)
-        String responseJson = com.asyncsite.tracing.logtrace.SafeJsonLogger.toJson(result);
-        log.info("Response: {}", responseJson);
+        // Log return value (안전하게)
+        if (result != null) {
+            String returnJson = com.asyncsite.tracing.logtrace.SafeJsonLogger.toJson(result);
+            log.debug("Return: {}", returnJson);
+        }
 
         logTracer.end(result, status);
         return result;
     }
 
-    /**
-     * Check if target class has specified annotation
-     */
-    @SafeVarargs
-    private static boolean isAnnotationPresent(
-        ProceedingJoinPoint joinPoint,
-        Class<? extends Annotation>... annotationClasses
-    ) {
-        Class<?> targetClass = getTargetClass(joinPoint);
-        return Arrays.stream(annotationClasses)
-            .anyMatch(targetClass::isAnnotationPresent);
-    }
-
-    /**
-     * Get target class from ProceedingJoinPoint
-     */
-    private static Class<?> getTargetClass(ProceedingJoinPoint joinPoint) {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        return method.getDeclaringClass();
-    }
 
     /**
      * Pointcut: Application layer (Use Cases / Services)
