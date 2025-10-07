@@ -79,14 +79,16 @@ public class GlobalTraceHandler {
      * Log incoming request and outgoing response for REST controllers
      */
     private Object logWithParameters(ProceedingJoinPoint joinPoint, TraceStatus status) throws Throwable {
-        // Log incoming request parameters
-        log.info("Incoming Request: {}", Arrays.toString(joinPoint.getArgs()));
+        // Log incoming request parameters (안전하게)
+        String requestJson = com.asyncsite.tracing.logtrace.SafeJsonLogger.toJsonArray(joinPoint.getArgs());
+        log.info("Request: {}", requestJson);
 
         // Execute method
         Object result = joinPoint.proceed();
 
-        // Log outgoing response
-        log.info("Outgoing Response: {}", result);
+        // Log outgoing response (안전하게)
+        String responseJson = com.asyncsite.tracing.logtrace.SafeJsonLogger.toJson(result);
+        log.info("Response: {}", responseJson);
 
         logTracer.end(result, status);
         return result;

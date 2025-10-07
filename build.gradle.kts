@@ -38,6 +38,12 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api")
 
+    // Jackson for JSON logging (already included via spring-boot-starter-web, but explicit for clarity)
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+
+    // Optional: Hibernate5Module for JPA entity logging
+    compileOnly("com.fasterxml.jackson.datatype:jackson-datatype-hibernate5")
+
     // Optional: Kafka header propagation support
     compileOnly("org.springframework.kafka:spring-kafka")
 
