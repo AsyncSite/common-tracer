@@ -41,6 +41,9 @@ dependencies {
     // Jackson for JSON logging (already included via spring-boot-starter-web, but explicit for clarity)
     implementation("com.fasterxml.jackson.core:jackson-databind")
 
+    // Java 8 date/time support (LocalDateTime, LocalDate, etc.)
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
     // Optional: Hibernate5Module for JPA entity logging
     compileOnly("com.fasterxml.jackson.datatype:jackson-datatype-hibernate5")
 

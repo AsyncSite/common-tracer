@@ -131,6 +131,22 @@ class SafeJsonLoggerTest {
         assertThat(json).contains("child2@test.com");
     }
 
+    @Test
+    void toJson_withLocalDateTime_shouldSerializeAsString() {
+        // given
+        java.time.LocalDateTime now = java.time.LocalDateTime.of(2025, 10, 8, 14, 30, 0);
+        DateTimeDto dto = new DateTimeDto(now, "Test Event");
+
+        // when
+        String json = SafeJsonLogger.toJson(dto);
+
+        // then (LocalDateTime이 ISO-8601 형식으로 직렬화되어야 함)
+        assertThat(json).contains("2025-10-08");
+        assertThat(json).contains("14:30");
+        assertThat(json).contains("Test Event");
+        assertThat(json).doesNotContain("[toString]");
+    }
+
     // Test DTOs
     static class TestDto {
         private String email;
@@ -165,6 +181,16 @@ class SafeJsonLoggerTest {
 
         public NestedDto(String name) {
             this.name = name;
+        }
+    }
+
+    static class DateTimeDto {
+        private java.time.LocalDateTime scheduledAt;
+        private String description;
+
+        public DateTimeDto(java.time.LocalDateTime scheduledAt, String description) {
+            this.scheduledAt = scheduledAt;
+            this.description = description;
         }
     }
 }

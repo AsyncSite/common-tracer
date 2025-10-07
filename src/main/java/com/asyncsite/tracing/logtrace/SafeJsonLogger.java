@@ -53,6 +53,20 @@ public class SafeJsonLogger {
         // 기타 안전 설정
         objectMapper.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
 
+        // Java 8 날짜/시간 타입 지원 (LocalDateTime, LocalDate 등)
+        try {
+            Class.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule");
+            com.fasterxml.jackson.databind.Module jsr310Module = createJsr310Module();
+            if (jsr310Module != null) {
+                objectMapper.registerModule(jsr310Module);
+                log.debug("JavaTimeModule registered for Java 8 date/time support");
+            }
+        } catch (ClassNotFoundException e) {
+            log.debug("JavaTimeModule not found, skipping");
+        } catch (Exception e) {
+            log.debug("Failed to register JavaTimeModule: {}", e.getMessage());
+        }
+
         // Hibernate Lazy Loading 무시 (의존성 있을 때만 활성화)
         try {
             Class.forName("com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module");
@@ -159,6 +173,20 @@ public class SafeJsonLogger {
         }
 
         return str.substring(0, maxLength - TRUNCATED_SUFFIX.length()) + TRUNCATED_SUFFIX;
+    }
+
+    /**
+     * JavaTimeModule 동적 생성 (리플렉션)
+     */
+    private static com.fasterxml.jackson.databind.Module createJsr310Module() {
+        try {
+            Class<?> moduleClass = Class.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule");
+            Object module = moduleClass.getDeclaredConstructor().newInstance();
+            return (com.fasterxml.jackson.databind.Module) module;
+        } catch (Exception e) {
+            log.warn("Failed to create JavaTimeModule: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**
