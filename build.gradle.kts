@@ -44,6 +44,9 @@ dependencies {
     // Java 8 date/time support (LocalDateTime, LocalDate, etc.)
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
+    // Java 8 Optional/OptionalInt/OptionalLong support
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+
     // Optional: Hibernate5Module for JPA entity logging
     compileOnly("com.fasterxml.jackson.datatype:jackson-datatype-hibernate5")
 

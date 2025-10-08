@@ -18,6 +18,11 @@ import lombok.extern.slf4j.Slf4j;
  * 4. 크기 제한: maxLength로 truncate
  * 5. 4단계 Fallback: JSON → toString → className → "FAILED"
  *
+ * 지원 타입:
+ * - Java 8 날짜/시간: LocalDateTime, LocalDate, etc. (JSR310Module)
+ * - Java 8 Optional: Optional, OptionalInt, OptionalLong (JDK8Module)
+ * - JPA 엔티티: Lazy loading 무시 (Hibernate5Module)
+ *
  * 사용법:
  * <pre>
  * String json = SafeJsonLogger.toJson(request);
@@ -65,6 +70,20 @@ public class SafeJsonLogger {
             log.debug("JavaTimeModule not found, skipping");
         } catch (Exception e) {
             log.debug("Failed to register JavaTimeModule: {}", e.getMessage());
+        }
+
+        // Java 8 Optional 타입 지원 (Optional, OptionalInt, OptionalLong 등)
+        try {
+            Class.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module");
+            com.fasterxml.jackson.databind.Module jdk8Module = createJdk8Module();
+            if (jdk8Module != null) {
+                objectMapper.registerModule(jdk8Module);
+                log.debug("Jdk8Module registered for Java 8 Optional support");
+            }
+        } catch (ClassNotFoundException e) {
+            log.debug("Jdk8Module not found, skipping");
+        } catch (Exception e) {
+            log.debug("Failed to register Jdk8Module: {}", e.getMessage());
         }
 
         // Hibernate Lazy Loading 무시 (의존성 있을 때만 활성화)
@@ -185,6 +204,20 @@ public class SafeJsonLogger {
             return (com.fasterxml.jackson.databind.Module) module;
         } catch (Exception e) {
             log.warn("Failed to create JavaTimeModule: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Jdk8Module 동적 생성 (리플렉션)
+     */
+    private static com.fasterxml.jackson.databind.Module createJdk8Module() {
+        try {
+            Class<?> moduleClass = Class.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module");
+            Object module = moduleClass.getDeclaredConstructor().newInstance();
+            return (com.fasterxml.jackson.databind.Module) module;
+        } catch (Exception e) {
+            log.warn("Failed to create Jdk8Module: {}", e.getMessage());
             return null;
         }
     }

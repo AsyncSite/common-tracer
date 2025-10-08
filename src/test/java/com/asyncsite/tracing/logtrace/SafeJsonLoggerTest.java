@@ -147,6 +147,49 @@ class SafeJsonLoggerTest {
         assertThat(json).doesNotContain("[toString]");
     }
 
+    @Test
+    void toJson_withOptionalPresent_shouldSerializeValue() {
+        // given
+        java.util.Optional<String> optional = java.util.Optional.of("test value");
+        OptionalDto dto = new OptionalDto(optional, "Test");
+
+        // when
+        String json = SafeJsonLogger.toJson(dto);
+
+        // then (Optional이 값으로 직렬화되어야 함)
+        assertThat(json).contains("test value");
+        assertThat(json).contains("Test");
+        assertThat(json).doesNotContain("[toString]");
+        assertThat(json).doesNotContain("Optional");
+    }
+
+    @Test
+    void toJson_withOptionalEmpty_shouldSerializeAsNull() {
+        // given
+        java.util.Optional<String> optional = java.util.Optional.empty();
+        OptionalDto dto = new OptionalDto(optional, "Test");
+
+        // when
+        String json = SafeJsonLogger.toJson(dto);
+
+        // then (Optional.empty()는 null로 직렬화되어야 함)
+        assertThat(json).contains("Test");
+        assertThat(json).doesNotContain("[toString]");
+    }
+
+    @Test
+    void toJson_withOptionalInt_shouldSerializeAsNumber() {
+        // given
+        java.util.OptionalInt optionalInt = java.util.OptionalInt.of(42);
+
+        // when
+        String json = SafeJsonLogger.toJson(optionalInt);
+
+        // then (OptionalInt가 숫자로 직렬화되어야 함)
+        assertThat(json).contains("42");
+        assertThat(json).doesNotContain("[toString]");
+    }
+
     // Test DTOs
     static class TestDto {
         private String email;
@@ -191,6 +234,16 @@ class SafeJsonLoggerTest {
         public DateTimeDto(java.time.LocalDateTime scheduledAt, String description) {
             this.scheduledAt = scheduledAt;
             this.description = description;
+        }
+    }
+
+    static class OptionalDto {
+        private java.util.Optional<String> optionalValue;
+        private String name;
+
+        public OptionalDto(java.util.Optional<String> optionalValue, String name) {
+            this.optionalValue = optionalValue;
+            this.name = name;
         }
     }
 }
